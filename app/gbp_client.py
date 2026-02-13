@@ -1,53 +1,60 @@
-from zeep import Client
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Optional
+
+from zeep import Client, Settings as ZeepSettings
 from zeep.transports import Transport
 from requests import Session
 from .config import settings
 
+
+@dataclass
 class GBPClient:
-    def __init__(self):
+    _client: Optional[Client] = None
+
+    def _get_client(self) -> Client:
+        """
+        Lazy-load del WSDL: NO se carga en import/startup.
+        Esto evita que Railway caiga si el WSDL está bloqueado.
+        """
+        if self._client is not None:
+            return self._client
+
         session = Session()
         session.verify = True
+        # Algunos servidores devuelven 403 si el UA es "python-requests"
+        session.headers.update({
+            "User-Agent": "Mozilla/5.0 (compatible; GBPZipnovaSync/1.0)",
+            "Accept": "text/xml,application/xml,*/*",
+        })
+
         transport = Transport(session=session, timeout=30)
-        self.client = Client(settings.GBP_WSDL_URL, transport=transport)
+
+        zeep_settings = ZeepSettings(strict=False, xml_huge_tree=True)
+
+        self._client = Client(settings.GBP_WSDL_URL, transport=transport, settings=zeep_settings)
+        return self._client
 
     def login_token(self) -> str:
-        """
-        REEMPLAZAR por el método real del WS.
-        Usualmente: Login(user, pass) -> token
-        """
-        # Ejemplo:
-        # resp = self.client.service.Login(settings.GBP_USER, settings.GBP_PASS)
-        # return resp.Token if hasattr(resp, "Token") else resp
-        raise NotImplementedError("Completar método login_token() con el WSDL real")
+        client = self._get_client()
+
+        # TODO: reemplazar por el método real según tu WSDL
+        # resp = client.service.Login(settings.GBP_USER, settings.GBP_PASS)
+        # token = resp.Token if hasattr(resp, "Token") else resp
+        raise NotImplementedError("Completar login_token() con el método real del WSDL")
 
     def list_invoices_ready_for_zipnova(self, token: str) -> list[dict]:
-        """
-        Debe devolver lista de comprobantes facturados cuyo método/logística sea ZIPNOVA
-        y que NO tengan zipnova_shipment_id asignado aún.
-        Cada item idealmente: { "invoice_id": "...", "logistics": "...", "status": "...", "zipnova_shipment_id": None }
-        """
-        # Ejemplo:
-        # return self.client.service.Facturas_ListarParaEnvio(token)
-        raise NotImplementedError("Completar método list_invoices_ready_for_zipnova()")
+        client = self._get_client()
+        # TODO: método real
+        raise NotImplementedError("Completar list_invoices_ready_for_zipnova() con el WSDL")
 
     def get_invoice_detail(self, token: str, invoice_id: str) -> dict:
-        """
-        Devuelve el detalle con:
-          - delivery_address (calle, número, extra, localidad, provincia, cp)
-          - customer_name
-          - totals: total_without_taxes
-          - items: (opcional) o al menos descripción
-          - logistics seleccionado
-        """
-        # Ejemplo:
-        # return self.client.service.Factura_ObtenerDetalle(token, invoice_id)
-        raise NotImplementedError("Completar método get_invoice_detail()")
+        client = self._get_client()
+        # TODO: método real
+        raise NotImplementedError("Completar get_invoice_detail() con el WSDL")
 
     def update_invoice_with_zipnova(self, token: str, invoice_id: str, shipment_id: str, tracking: str | None) -> None:
-        """
-        Guarda en GBP el shipment_id/tracking para que quede ligado al comprobante y no se duplique.
-        """
-        # Ejemplo:
-        # self.client.service.Factura_ActualizarCamposEnvio(token, invoice_id, shipment_id, tracking or "")
-        raise NotImplementedError("Completar método update_invoice_with_zipnova()")
-        
+        client = self._get_client()
+        # TODO: método real
+        raise NotImplementedError("Completar update_invoice_with_zipnova() con el WSDL")

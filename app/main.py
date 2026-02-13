@@ -7,7 +7,7 @@ from .mapper import build_zipnova_payload_from_invoice
 
 app = FastAPI(title="GBP → Zipnova Sync", version="1.0.0")
 
-gbp = GBPClient()
+gbp = GBPClient()  # ahora ya no rompe porque no carga WSDL en __init__
 zipnova = ZipnovaClient()
 scheduler = BackgroundScheduler()
 
