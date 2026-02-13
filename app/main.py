@@ -105,6 +105,25 @@ def sync_once() -> dict:
 def health():
     return {"ok": True}
 
+import requests
+from .config import settings
+
+@app.get("/diag/wsdl")
+def diag_wsdl():
+    try:
+        r = requests.get(settings.GBP_WSDL_URL, timeout=15, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; GBPZipnovaSync/1.0)",
+            "Accept": "text/xml,application/xml,*/*"
+        })
+        return {
+            "url": settings.GBP_WSDL_URL,
+            "status": r.status_code,
+            "content_type": r.headers.get("content-type"),
+            "head": r.text[:500]
+        }
+    except Exception as e:
+        return {"url": settings.GBP_WSDL_URL, "error": str(e)}
+
 @app.post("/sync")
 def sync():
     """
